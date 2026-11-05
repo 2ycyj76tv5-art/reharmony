@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REHARMONY · Concert Hall</title>
+<style>
+  html, body { margin:0; height:100%; background:#120a08; color:#f6ecd6; font-family: Georgia, "Times New Roman", serif; overflow:hidden; }
+  #overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; z-index:5; text-align:center; padding:20px;
+             background: radial-gradient(ellipse at center, rgba(70,20,20,0.85), rgba(10,5,5,0.97)); }
+  h1 { font-size:56px; letter-spacing:8px; margin:0; color:#ffd56a; font-style:italic; text-shadow:0 2px 14px #000; }
+  .sub { font-size:20px; color:#e8d6b0; font-style:italic; margin-top:-8px; }
+  p { margin:0; color:#cbb894; max-width:560px; line-height:1.5; font-family: system-ui, sans-serif; font-size:15px; }
+  button { font: 600 21px system-ui, sans-serif; padding:16px 36px; border-radius:14px; border:0; cursor:pointer; min-width:340px; }
+  #enter-vr { background:linear-gradient(#ffe08a,#d9a74a); color:#2a1408; box-shadow:0 4px 18px rgba(0,0,0,0.6); }
+  #enter-vr:disabled { background:#4d3a30; color:#a08870; cursor:default; box-shadow:none; }
+  #keyboard-mode { background:#2b1d20; color:#f6ecd6; font-size:16px; border:1px solid #6a4a30; }
+  #vr-note { font: 14px system-ui, sans-serif; color:#d9b878; }
+  label { font: 14px system-ui, sans-serif; color:#cbb894; }
+  #net { font: 14px system-ui, sans-serif; }
+  #net.ok { color:#8fe0a0; } #net.bad { color:#ff8a7a; }
+  #warn { color:#ffb07a; font: 14px system-ui, sans-serif; }
+  #codebox { display:none; font: 15px system-ui, sans-serif; color:#e8dcc4; gap:8px; align-items:center; }
+  #codebox input { font: 600 26px system-ui, sans-serif; width:120px; text-align:center; letter-spacing:6px; padding:8px; border-radius:10px; border:1px solid #6a4a30; background:#1c1012; color:#ffd56a; }
+  #codebox button { min-width:0; padding:10px 20px; font-size:18px; background:#d9a74a; color:#2a1408; }
+  #keyhelp { display:none; position:fixed; left:12px; bottom:12px; background:rgba(20,10,12,0.88); padding:10px 14px; border-radius:10px;
+             font: 13px/1.6 system-ui, sans-serif; color:#e8dcc4; z-index:4; border:1px solid #6a4a30; }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
+</head>
+<body>
+<div id="overlay">
+  <h1>REHARMONY</h1>
+  <div class="sub">A concert for your recovery</div>
+  <p>Sit comfortably, rest your forearm on the support and let your hand hang relaxed past the edge. Put the controllers down: your hand is tracked.</p>
+  <button id="enter-vr" disabled>Enter the concert hall</button>
+  <div id="vr-note">Looking for a headset...</div>
+  <button id="keyboard-mode">Keyboard mode (no headset)</button>
+  <label><input type="checkbox" id="local-music"> Play the music on this device too (testing alone)</label>
+  <div id="net" class="bad">Connecting to the server...</div>
+  <div id="codebox">Room code from the clinician screen: <input id="code" inputmode="numeric" maxlength="4" placeholder="0000"><button id="join">Join</button></div>
+  <div id="warn"></div>
+</div>
+<div id="keyhelp">
+  <b>Keyboard mode</b> · Esc skips the intro<br>
+  ← → then Enter: choose an instrument<br>
+  ↑ / ↓: wrist up / down · ← / →: thumb side / little-finger side<br>
+  Q / E: palm down / palm up · W / S: dart throw back / forward<br>
+  F / G: fist / open hand · 1-4: thumb to fingertips · 5: thumb to base of little finger
+</div>
+<script type="module" src="js/patient.js"></script>
+</body>
+</html>

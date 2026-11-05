@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REHARMONY · Conductor</title>
+<style>
+  :root { --bg:#150d0c; --panel:#221615; --panel2:#2c1d1b; --line:#4a3226; --text:#f6ecd6; --muted:#bba78a; --gold:#ffd56a; --gold2:#d9a74a; --blue:#6cc4ff; --green:#7fe0a0; --red:#ff6a6a; --serif: Georgia, "Times New Roman", serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display:flex; align-items:center; gap:14px; padding:10px 18px; border-bottom:1px solid var(--line); background:linear-gradient(#2a1714,#1a0f0d); flex-wrap:wrap; }
+  header h1 { margin:0 10px 0 0; font: italic 600 24px var(--serif); color:var(--gold); letter-spacing:2px; }
+  .pill { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px; background:#ffffff08; padding:5px 10px; border-radius:20px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--red); }
+  .dot.on { background:var(--green); }
+  #pause { margin-left:auto; font:700 18px system-ui; padding:11px 26px; border-radius:12px; border:0; background:var(--red); color:#fff; cursor:pointer; }
+  #pause.paused { background:var(--green); color:#0c2010; }
+  .layout { display:grid; grid-template-columns: 210px minmax(420px, 1fr) 440px; gap:14px; padding:14px; align-items:start; }
+  @media (max-width: 1250px) { .layout { grid-template-columns: 1fr; } nav { display:flex; flex-wrap:wrap; } }
+  nav button { display:flex; align-items:center; gap:10px; width:100%; text-align:left; margin-bottom:8px; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); font:600 15px system-ui; cursor:pointer; }
+  nav button .n { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; background:#ffffff12; font-size:13px; flex:none; }
+  nav button.active { background:var(--panel2); border-color:var(--gold2); }
+  nav button.done .n { background:var(--green); color:#0c2010; }
+  section.step { display:none; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; }
+  section.step.active { display:block; }
+  h2 { margin:0 0 6px; font: italic 600 26px var(--serif); color:var(--gold); }
+  .lead { color:var(--muted); margin:0 0 16px; line-height:1.5; }
+  h3 { margin:18px 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
+  .card { background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  button.btn { font:600 15px system-ui; padding:11px 16px; border-radius:11px; border:1px solid var(--line); background:#3a2622; color:var(--text); cursor:pointer; }
+  button.btn:hover { border-color:var(--gold2); }
+  button.gold { background:linear-gradient(#ffe08a,#d9a74a); color:#2a1408; border:0; }
+  button.on { background:var(--blue); color:#06121c; border:0; }
+  button.big { font-size:17px; padding:14px 22px; }
+  .check { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px dashed var(--line); }
+  .check:last-child { border-bottom:0; }
+  .check .st { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:#ffffff10; font-weight:700; flex:none; }
+  .check.ok .st { background:var(--green); color:#0c2010; }
+  .check .txt { flex:1; }
+  .check .txt b { display:block; }
+  .check .txt span { color:var(--muted); font-size:13px; }
+  code { background:#0004; padding:2px 6px; border-radius:6px; color:var(--gold); font-size:14px; }
+  .choices { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
+  .choice { background:var(--panel2); border:2px solid var(--line); border-radius:14px; padding:12px; cursor:pointer; text-align:center; }
+  .choice.sel { border-color:var(--gold); background:#3a2a1c; }
+  .choice b { display:block; font: italic 600 16px var(--serif); color:var(--gold); }
+  .choice span { font-size:12px; color:var(--muted); }
+  .choice canvas { width:84px; height:84px; display:block; margin:0 auto 4px; }
+  .cues { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+  .cue { background:var(--panel2); border:2px solid var(--line); border-radius:14px; padding:10px 6px; cursor:pointer; text-align:center; color:var(--text); font:600 14px system-ui; }
+  .cue:hover { border-color:var(--gold2); }
+  .cue canvas { width:90px; height:90px; display:block; margin:0 auto 4px; }
+  .cue small { display:block; color:var(--muted); font-weight:400; }
+  .cue kbd { background:#0005; border-radius:5px; padding:1px 6px; font-size:12px; color:var(--gold); }
+  .settings { display:grid; grid-template-columns: 170px 1fr 70px; gap:8px 10px; align-items:center; font-size:14px; }
+  .settings output { text-align:right; color:var(--gold); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color: var(--gold2); }
+  select, input[type=number] { font:inherit; font-size:15px; padding:8px; border-radius:8px; background:#3a2622; color:var(--text); border:1px solid var(--line); }
+  .live { position:sticky; top:10px; }
+  #preview { width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#000; }
+  .camwrap { position:relative; width:100%; aspect-ratio:4/3; border-radius:12px; overflow:hidden; background:#000; border:1px solid var(--line); }
+  .camwrap video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+  .camwrap canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .camwrap .msg { position:absolute; inset:0; display:grid; place-items:center; color:var(--muted); font-size:14px; text-align:center; padding:20px; }
+  canvas#gauges { width:100%; height:300px; display:block; }
+  .painrow { display:flex; gap:4px; flex-wrap:wrap; }
+  button.pain { width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:hsl(var(--h) 45% 22%); color:#fff; font-weight:700; cursor:pointer; }
+  button.pain.on { background:hsl(var(--h) 70% 45%); outline:2px solid var(--gold); }
+  .safety { border-left:4px solid var(--gold2); }
+  .big-cue { font: italic 600 22px var(--serif); color:var(--gold); min-height:30px; }
+  .meter { height:10px; background:#0006; border-radius:6px; overflow:hidden; }
+  .meter > div { height:100%; width:0; background:var(--green); transition:width .1s; }
+  .layers { display:flex; gap:6px; }
+  .layers span { flex:1; text-align:center; font-size:11px; padding:6px 2px; border-radius:8px; background:#ffffff0c; color:var(--muted); }
+  .layers span.on { background:var(--gold2); color:#2a1408; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:7px 4px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  #chart { width:100%; height:220px; display:block; }
+  .seen { color:var(--blue); font-size:14px; min-height:20px; }
+  .note { font-size:13px; color:var(--muted); line-height:1.5; }
+  #introOverlay { position:fixed; inset:0; background:#000; z-index:50; display:none; }
+  #introOverlay.show { display:block; }
+  #introStage { position:absolute; inset:0; }
+  #introSkip { position:absolute; right:20px; top:20px; z-index:2; }
+  .pairbox { display:flex; gap:16px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+  #roomBig { font: 700 40px var(--serif); letter-spacing:8px; color:var(--gold); }
+  #roomQr { width:110px; height:110px; background:#fff; border-radius:8px; padding:4px; image-rendering:pixelated; }
+  .pairstate { font-weight:700; color:var(--muted); margin-bottom:4px; }
+  .pairstate.ok { color:var(--green); }
+  .pairstate.bad { color:#ff8a7a; }
+  .progress { height:8px; background:#0006; border-radius:6px; overflow:hidden; margin-top:6px; }
+  .progress > div { height:100%; width:0%; background:var(--gold2); }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
+</head>
+<body>
+<header>
+  <h1>REHARMONY · Conductor</h1>
+  <span class="pill"><span id="d-server" class="dot"></span>Server</span>
+  <span class="pill"><span id="d-sound" class="dot"></span>Sound</span>
+  <span class="pill"><span id="d-headset" class="dot"></span><span id="headsetPill">Headset</span></span>
+  <span class="pill" id="roomPill" title="Room code">Room ----</span>
+  <span class="pill"><span id="d-camera" class="dot"></span>Camera</span>
+  <span class="pill" id="timer">00:00</span>
+  <button id="pause">PAUSE</button>
+</header>
+
+<div class="layout">
+  <nav id="nav">
+    <button data-step="1" class="active"><span class="n">1</span>Welcome &amp; connect</button>
+    <button data-step="2"><span class="n">2</span>Calibrate the wrist</button>
+    <button data-step="3"><span class="n">3</span>Plan the concert</button>
+    <button data-step="4"><span class="n">4</span>Conduct</button>
+    <button data-step="5"><span class="n">5</span>Results</button>
+  </nav>
+
+  <main>
+    <!-- STEP 1 -->
+    <section class="step active" id="step1">
+      <h2>Welcome, Maestro</h2>
+      <p class="lead">You are the conductor. The patient wears the headset and plays in Mozart's orchestra.
+        <b>Your arm movements become Mozart's movements</b>, and every exercise you ask for becomes music when the patient does it.
+        This screen guides you step by step. Get these four things ready:</p>
+      <div class="card">
+        <div class="check" id="c-server"><div class="st">1</div><div class="txt"><b>Server running</b><span>The black window on the first laptop must stay open.</span></div></div>
+        <div class="check" id="c-sound"><div class="st">2</div><div class="txt"><b>Sound on the speaker</b><span>Plug the speaker into this laptop, then press the button. You should hear a chord.</span></div>
+          <button class="btn gold" id="soundOn">Turn on sound</button></div>
+        <div class="check" id="c-headset"><div class="st">3</div><div class="txt"><b>Headset paired</b><span>In the Quest 3 Browser open <code id="patientUrl">…</code> and press <i>Enter the concert hall</i> (or start the Unity app). It pairs by itself; only if several clinician screens are open does the patient type the room code.</span>
+          <div class="pairbox">
+            <div><div class="note">Room code</div><div id="roomBig">----</div></div>
+            <img id="roomQr" alt="QR code of the patient link">
+            <div style="flex:1">
+              <div id="pairState" class="pairstate">Waiting for the headset…</div>
+              <div id="latency" class="note"></div>
+              <button class="btn" id="wave">👋 Wave to the patient</button>
+              <div id="waveResult" class="note"></div>
+            </div>
+          </div></div></div>
+        <div class="check" id="c-camera"><div class="st">4</div><div class="txt"><b>Camera sees you</b><span>Stand or sit about 1.5 m from this laptop so your upper body and arms are visible.</span></div>
+          <button class="btn gold" id="camOn">Turn on camera</button></div>
+      </div>
+      <h3>Then</h3>
+      <div class="row">
+        <button class="btn gold big" id="introBtn">▶ Play the intro for both of us</button>
+        <button class="btn big" data-goto="2">Skip to calibration →</button>
+      </div>
+      <p class="note">The intro (about 1.5 minutes) shows Mozart and Clara explaining the story, your role, the patient's role, and why these exercises help. It plays on this screen with sound, and in the headset at the same time.</p>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" id="step2">
+      <h2>Calibrate the wrist</h2>
+      <p class="lead">This tells the system what "relaxed" is for this patient and how far they can comfortably move. Targets are always a percentage of this comfortable range, never beyond it.</p>
+      <h3>A · Which hand is in therapy?</h3>
+      <div class="row">
+        <button class="btn big" data-hand="left">Left hand</button>
+        <button class="btn big on" data-hand="right">Right hand</button>
+      </div>
+      <h3>B · Relaxed position</h3>
+      <div class="card row">
+        <div style="flex:1">Ask the patient to rest the forearm on the support, palm down, and let the hand relax flat. Then press:</div>
+        <button class="btn gold" id="neutral">Save relaxed position</button>
+        <span id="neutralOk" class="note"></span>
+      </div>
+      <h3>C · Comfortable range</h3>
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <div style="flex:1">Press start, then ask the patient to move <b>gently</b> as far as is comfortable: up, down, toward the thumb, toward the little finger, then (elbow tucked in at the side) palm down and palm up. Press finish.</div>
+          <button class="btn gold" id="range">Start measuring</button>
+        </div>
+        <canvas id="rangeBars" style="width:100%;height:176px"></canvas>
+      </div>
+      <h3>D · Pain before we start (0 = none, 10 = worst)</h3>
+      <div class="card">
+        <div class="painrow" id="painBefore"></div>
+        <p class="note" id="painAdvice1" style="margin:8px 0 0"></p>
+        <p class="note" style="margin:6px 0 0">The NHS leaflet says to work to an "unpleasant stretch", about <b>5/10</b>, which should settle within about 30 minutes after the exercises. Stop if anything feels sharp.</p>
+      </div>
+      <div class="row" style="margin-top:14px"><button class="btn big" data-goto="3">Next: plan the concert →</button></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" id="step3">
+      <h2>Plan the concert</h2>
+      <p class="lead">Choose the music, how hard it should be, and which exercises to practise. You can change everything during the session.</p>
+      <h3>Music</h3>
+      <div class="choices" id="pieces"></div>
+      <h3>Difficulty</h3>
+      <div class="choices" id="presets"></div>
+      <details style="margin-top:10px"><summary class="note" style="cursor:pointer">Fine-tune (advanced)</summary>
+        <div class="settings" style="margin-top:10px">
+          <label>Target (% of range)</label><input id="targetPct" type="range" min="30" max="100" step="5" value="60"><output id="o-targetPct">60%</output>
+          <label>Hold time</label><input id="holdMs" type="range" min="200" max="2000" step="100" value="600"><output id="o-holdMs">0.6 s</output>
+          <label>Tempo (beats/min)</label><input id="tempo" type="range" min="60" max="120" step="2" value="92"><output id="o-tempo">92</output>
+          <label>Thumb touch distance</label><input id="pinchCm" type="range" min="1.5" max="4" step="0.5" value="2.5"><output id="o-pinchCm">2.5 cm</output>
+        </div>
+      </details>
+      <h3>Exercise programme</h3>
+      <p class="note" style="margin-top:-4px">Ready-made programmes based on the OUH NHS <i>Wrist fractures</i> leaflet. Always follow the patient's own physiotherapy plan.</p>
+      <div class="choices" id="programmes"></div>
+      <h3>Exercises in the plan <span class="note" id="planSummary" style="font-weight:400"></span></h3>
+      <div class="choices" id="moves"></div>
+      <div class="settings" style="margin-top:10px">
+        <label>Long stretch hold<br><span class="note">wrist up/down, palm up/down</span></label><input id="stretchS" type="range" min="0" max="30" step="5" value="10"><output id="o-stretchS">10 s</output>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="note">Repetitions of each <input type="number" id="repsEach" min="1" max="20" value="5" style="width:70px"></label>
+        <label class="note">Order <select id="order"><option value="turns">One after another</option><option value="mixed">Mixed</option></select></label>
+      </div>
+      <h3>Instrument</h3>
+      <div class="row">
+        <span class="note">The patient chooses in the headset (tilt to choose, pinch to pick). Patient's choice: <b id="patientInst">–</b></span>
+        <select id="instrument"></select>
+      </div>
+      <div class="row" style="margin-top:16px"><button class="btn gold big" id="startConcert">Start the concert →</button></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="step" id="step4">
+      <h2>Conduct</h2>
+      <p class="lead">Choose how you give the exercises. You can always click a button or press a key as well.</p>
+      <div class="choices" id="modes"></div>
+      <div class="card" style="margin-top:12px">
+        <div class="row"><b style="flex:1" id="planText">Plan: –</b><span class="seen" id="seen"></span></div>
+        <div class="progress"><div id="planBar"></div></div>
+        <label class="note"><input type="checkbox" id="autoFinale" checked> Play the finale automatically when the plan is complete</label>
+      </div>
+      <h3>Exercise buttons</h3>
+      <div class="cues" id="cueButtons"></div>
+      <div class="cues" id="rotButtons" style="margin-top:10px"></div>
+      <div class="cues" id="fingerButtons" style="margin-top:10px"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="clearCue">Clear the current order</button>
+        <button class="btn gold big" id="finale">🎺 Finale</button>
+      </div>
+      <p class="note"><b>Camera gestures:</b> make one clear, quick stroke with your <b>right hand</b> (up, down, to your left, to your right) to give a wrist exercise. Touch your <b>left thumb</b> to a fingertip (or to the base of your little finger) and hold it for half a second to give that thumb exercise. Make a <b>left fist</b> for half a second to ask for a full fist. Mozart copies your arms and hands the whole time.</p>
+      <p class="note"><b>Long holds:</b> when the patient reaches a stretch with a long hold, the orchestra holds a fermata (a long growing chord) and the headset counts down, so the 10-30 seconds feel like part of the music.</p>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step" id="step5">
+      <h2>Results</h2>
+      <p class="lead">What the patient achieved in this session. Numbers come from hand tracking: good for motivation and trends, not a clinical measurement.</p>
+      <div class="row" id="summaryLine" style="font-size:16px;margin-bottom:10px"></div>
+      <div class="card" style="margin-bottom:12px">
+        <b>Pain after the session (0-10)</b>
+        <div class="painrow" id="painAfter" style="margin-top:8px"></div>
+        <p class="note" id="painAdvice2" style="margin:8px 0 0"></p>
+      </div>
+      <canvas id="chart"></canvas>
+      <table style="margin-top:12px"><thead><tr><th>Exercise</th><th>Reps</th><th>Best</th><th>Target</th><th>Avg hold</th></tr></thead><tbody id="stats"></tbody></table>
+      <div class="row" style="margin-top:14px">
+        <button class="btn gold" id="csv">Download CSV</button>
+        <button class="btn" id="newSession">New session</button>
+      </div>
+    </section>
+  </main>
+
+  <aside class="live">
+    <div id="preview"></div>
+    <div class="note" style="margin:6px 2px 12px"><b>You are the Maestro:</b> Mozart copies your arms (camera on). This is exactly what the patient sees in the headset.</div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="big-cue" id="curCue">No order yet</div>
+      <div class="note" id="patientLine">Waiting for the headset…</div>
+      <div class="meter" style="margin-top:8px"><div id="holdMeter"></div></div>
+      <div class="layers" style="margin-top:10px">
+        <span id="L1">Strings</span><span id="L2">Cellos</span><span id="L3">Brass</span><span id="L4">Winds</span>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px"><canvas id="gauges"></canvas></div>
+    <div class="camwrap"><video id="video" playsinline muted></video><canvas id="camOverlay" width="640" height="480"></canvas><div class="msg" id="camMsg">Camera off</div></div>
+  </aside>
+</div>
+
+<div id="introOverlay"><div id="introStage"></div><button class="btn gold" id="introSkip">Skip intro ✕</button></div>
+
+<script type="module" src="js/clinician/app.js"></script>
+</body>
+</html>
